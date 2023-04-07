@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<script src="js/puck.js"></script> 
+	<title>Set Your Room Temperature</title>
+	<style>
+		body {
+			background-color: #f2f2f2;
+		}
+		form {
+			margin: 0 auto;
+			width: 50%;
+			padding: 20px;
+			background-color: #fff;
+			border-radius: 10px;
+			box-shadow: 0px 0px 10px rgba(0,0,0,0.2);
+		}
+		label {
+			display: block;
+			margin-bottom: 10px;
+		}
+		input[type=range] {
+			-webkit-appearance: none;
+			width: 100%;
+			height: 10px;
+			background-color: #ddd;
+			border-radius: 5px;
+			outline: none;
+			margin-bottom: 10px;
+		}
+		input[type=range]::-webkit-slider-thumb {
+			-webkit-appearance: none;
+			appearance: none;
+			width: 20px;
+			height: 20px;
+			background-color: #4CAF50;
+			border-radius: 50%;
+			cursor: pointer;
+		}
+		#temp-label {
+			font-size: 24px;
+			font-weight: bold;
+			margin-bottom: 10px;
+		}
+		#result {
+			font-size: 18px;
+			font-weight: bold;
+			padding: 10px;
+			margin-top: 20px;
+			background-color: #4CAF50;
+			color: #fff;
+			display: none;
+		}
+		#temp-display {
+			font-size: 24px;
+			font-weight: bold;
+			text-align: center;
+			margin-bottom: 10px;
+		}
+	</style>
+</head>
+<body>
+
+<h1>Set Your Room Temperature</h1>
+
+<p>Please select the desired temperature for your room:</p>
+
+<form id="temp-form" action="/action_page.php">
+  <label for="quantity">Temperature:</label>
+  <input type="range" id="quantity" name="quantity" min="16" max="31" step="1" value="25">
+  <br>
+  <span id="temp-display"></span>
+  <br>
+  <input type="submit" value="Set Temperature">
+</form>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div id="result"></div>
+
+<script>
+
+var light = {
+ increase : [456],
+decrease : [3424],
+};
+var offset = 20.2 - 17.75;
+
+function tempTest() {
+  var therm = E.getTemperature()+offset;
+ 
+  if (therm < '#quantity')
+    Puck.IR(light.increase);
+    else if (therm == '#quantity')
+result.innerHTML = `Target temperature of ${temp} degrees Celsius achieved.`;
+   else
+    Puck.IR(light.decrease);
+}
+setInterval(tempTest, 10*1000);
+
+
+
+
+
+
+	const form = document.querySelector('#temp-form');
+	const targetTemp = document.querySelector('#quantity');
+	const tempDisplay = document.querySelector('#temp-display');
+	const result = document.querySelector('#result');
+
+	form.addEventListener('submit', (event) => {
+		event.preventDefault();
+		const temp = targetTemp.value;
+		result.innerHTML = `Target temperature of ${temp} degrees Celsius achieved.`;
+		result.style.display = 'block';
+	});
+
+	targetTemp.addEventListener('input', (event) => {
+		const temp = event.target.value;
+		tempDisplay.innerHTML = `${temp}°C`;
+	});
+</script>
+
+</body>
+</html>
