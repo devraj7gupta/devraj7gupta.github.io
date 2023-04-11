@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Real-time Heart Rate and Earthquake Correlation Study</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css" />
+	<style>
+		#mapid {
+			height: 800px;
+		}
+
+	h1 {
+		text-align: center;
+	}
+	
+	.legend {
+		position: absolute;
+		left: 10px;
+		bottom: 10px;
+		z-index: 999;
+		background-color: rgba(255, 255, 255, 0.8);
+		border-radius: 5px;
+		padding: 10px;
+		font-size: 14px;
+		line-height: 1.5;
+	}
+	
+	.legend-item {
+		display: flex;
+		align-items: center;
+		margin-bottom: 5px;
+	}
+	
+	.legend-item__dot--blue {
+		display: inline-block;
+		width: 16px;
+		height: 16px;
+           border-width: 2px;
+           border-style:solid;
+             border-color:blue;
+		border-radius: 50%;
+		margin-right: 5px;
+	}
+
+.legend-item__dot--black {
+		display: inline-block;
+		width: 16px;
+		height: 16px;
+           border-width: 2px;
+           border-style:solid;
+             border-color:black;
+		border-radius: 50%;
+		margin-right: 5px;
+	}
+
+	.legend-item__dot--red {
+		display: inline-block;
+		width: 16px;
+		height: 16px;
+           border-width: 2px;
+           border-style:solid;
+             border-color:red;
+		border-radius: 50%;
+		margin-right: 5px;
+	}
+	
+	.legend-item__dot--blue {
+		background-color: blue;
+	}
+	.legend-item__dot--black {
+		background-color: black;
+	}
+	
+	.legend-item__dot--red {
+		background-color: none;
+	}
+	
+	.legend-item__text {
+		flex: 1;
+		margin: 0;
+	}
+	
+	.legend-item__text--blue {
+		color: blue;
+	}
+	
+	.legend-item__text--red {
+		color: red;
+	
+	.legend-item__text--black {
+		color: black;
+	}
+</style>
+
+</head>
+<body>
+	<h1>Studying correlation between real-time heart rate and earthquakes occurrence</h1>
+	<div id="mapid"></div>
+	<div class="legend">
+		<div class="legend-item">
+			<div class="legend-item__dot legend-item__dot--blue"></div>
+			<p class="legend-item__text legend-item__text--blue">Earthquake occurred < 6 hrs ago.</p>
+		
+		</div>
+
+<div class="legend-item">
+			<div class="legend-item__dot legend-item__dot--black"></div>
+			<p class="legend-item__text legend-item__text--black">Earthquake occurred between 6 - 12 hrs ago.</p>
+		</div>
+
+		<div class="legend-item">
+			<div class="legend-item__dot legend-item__dot--red"></div>
+			<p class="legend-item__text legend-item__text--red">Earthquake magnitude is 5 or greater.</p>
+		</div>
+	</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
+<script>
+	var map = L.map('mapid').setView([0, 0], 2);
+
+	L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+		maxZoom: 18,
+		attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
+			'<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+			'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+		id: 'mapbox/streets-v11',
+		tileSize: 512,
+		zoomOffset: -1
+	}).addTo(map);
+
+	function updateEarthquakeData() {
+			// Retrieve earthquake data from USGS API
+			fetch('https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=' + new Date(new Date().getTime() - 24 * 60 * 60 * 1000).toISOString())
+				.then(response => response.json())
+				.then(data => {
+					// Clear existing markers
+					map.eachLayer(layer => {
+						if (layer instanceof L.CircleMarker) {
+							map.removeLayer(layer);
+						}
+					});
+
+					// Add new markers for each earthquake
+					data.features.forEach(feature => {
+						// Create a circle marker for each earthquake
+						var markerColor = 'black';
+						var outlineColor = 'none';
+						var hoursSinceEvent = (new Date().getTime() - feature.properties.time) / (1000 * 60 * 60);
+
+						if (hoursSinceEvent < 6) {
+							markerColor = 'blue';
+						}
+
+						if (feature.properties.mag >= 5) {
+							outlineColor = 'red';
+						}
+
+						var marker = L.circleMarker([feature.geometry.coordinates[1], feature.geometry.coordinates[0]], {
+							radius: feature.properties.mag * 2,
+							fillColor: markerColor,
+							color: outlineColor,
+							weight: 2,
+							opacity: 1,
+							fillOpacity: 0.8
+						});
+
+						// Add a popup with earthquake information
+						marker.bindPopup('Magnitude: ' + feature.properties.mag + '<br>' +
+							'Location: ' + feature.properties.place + '<br>' +
+							'Time: ' + new Date(feature.properties.time).toString());
+
+						// Add marker to the map
+						marker.addTo(map);
+					});
+				})
+				.catch(error => console.log(error));
+		}
+
+		updateEarthquakeData();
+		setInterval(updateEarthquakeData, 60000); // Update every minute
+	</script>
+</body>
+</html>
